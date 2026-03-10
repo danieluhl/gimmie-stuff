@@ -1,0 +1,30 @@
+{
+  "projectName": "gimmie-stuff",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "npm",
+  "includeExamples": true,
+  "tailwind": true,
+  "addOnOptions": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "envVarValues": {
+    "VITE_CLERK_PUBLISHABLE_KEY": "pk_test_Ym9zcy1xdWFnZ2EtMjcuY2xlcmsuYWNjb3VudHMuZGV2JA"
+  },
+  "git": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "railway",
+    "clerk",
+    "drizzle",
+    "form",
+    "shadcn",
+    "tanstack-query"
+  ]
+}
+
