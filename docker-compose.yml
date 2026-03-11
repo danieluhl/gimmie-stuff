@@ -1,0 +1,14 @@
+services:
+  db:
+    image: ghcr.io/railwayapp-templates/postgres-ssl:16.11
+    container_name: postgres_ssl_db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gimmie_stuff
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
