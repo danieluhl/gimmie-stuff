@@ -19,38 +19,38 @@ const authStateFn = createServerFn().handler(async () => {
 
 	const user = await clerkClient().users.getUser(userId);
 
-	return { userId, firstName: user.firstName };
+	// check if the user is already in the database
+	let [dbUser] = await db
+		.select()
+		.from(users)
+		.where(eq(users.clerkId, userId))
+		.limit(1);
+
+	// if we don't have a db user, create a new one
+	if (!dbUser) {
+		const [newUser] = await db
+			.insert(users)
+			.values({
+				clerkId: userId,
+				name: user.firstName || "unknown",
+			})
+			.returning();
+		dbUser = newUser;
+	}
+
+	// fetch all users
+	const allUsers = await db.select().from(users);
+
+	return { userId, user: dbUser, allUsers };
 });
 
 export const Route = createFileRoute("/")({
 	component: Home,
 	beforeLoad: () => authStateFn(),
 	loader: async ({ context }) => {
-		const { userId, firstName } = context;
+		const { userId, user, allUsers } = context;
 
-		// check if the user is already in the database
-		let [dbUser] = await db
-			.select()
-			.from(users)
-			.where(eq(users.clerkId, userId))
-			.limit(1);
-
-		// if we don't have a db user, create a new one
-		if (!dbUser) {
-			const [newUser] = await db
-				.insert(users)
-				.values({
-					clerkId: userId,
-					name: firstName || "unknown",
-				})
-				.returning();
-			dbUser = newUser;
-		}
-
-		// fetch all users
-		const allUsers = await db.select().from(users);
-
-		return { userId: userId, user: dbUser, allUsers };
+		return { userId: userId, user, allUsers };
 	},
 });
 

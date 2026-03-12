@@ -3,6 +3,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
+	ErrorComponent,
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
@@ -59,6 +60,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	}),
 	shellComponent: RootDocument,
 	notFoundComponent: NotFound,
+	errorComponent: ErrorComponent,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
