@@ -1,6 +1,11 @@
 import { Show, SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { Button } from "#/components/ui/button";
@@ -56,6 +61,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
 	const { user, allUsers } = Route.useLoaderData();
+	const navigate = useNavigate();
 
 	return (
 		<div>
@@ -67,22 +73,24 @@ function Home() {
 					</p>
 				</div>
 
-				<section>
-					<h2 className="mb-4 text-lg font-semibold">All Users</h2>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+				<section className="flex flex-col gap-4">
+					<h2 className="text-lg font-semibold">People</h2>
+					<div className="flex">
 						{allUsers.map((u) => (
-							<Link
+							<Card
+								onClick={() =>
+									navigate({
+										to: "/user/$userId",
+										params: { userId: String(u.id) },
+									})
+								}
 								key={u.id}
-								to="/user/$userId"
-								params={{ userId: String(u.id) }}
-								className="no-underline"
+								className="transition-colors hover:bg-accent py-2 cursor-pointer"
 							>
-								<Card className="transition-colors hover:bg-accent">
-									<CardContent className="flex items-center justify-center py-6">
-										<span className="font-medium">{u.name}</span>
-									</CardContent>
-								</Card>
-							</Link>
+								<CardContent className="flex items-center justify-center">
+									<span className="font-medium">{u.name}</span>
+								</CardContent>
+							</Card>
 						))}
 					</div>
 				</section>

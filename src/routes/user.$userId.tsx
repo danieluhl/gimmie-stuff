@@ -194,7 +194,7 @@ function UserEditForm({ user }: { user: InferSelectModel<typeof users> }) {
 								name="anniversary"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Anniversary</FormLabel>
+										<FormLabel>Anniversary (wedding)</FormLabel>
 										<FormControl>
 											<Input type="date" {...field} value={field.value || ""} />
 										</FormControl>
@@ -208,7 +208,9 @@ function UserEditForm({ user }: { user: InferSelectModel<typeof users> }) {
 							name="sizes"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Sizes</FormLabel>
+									<FormLabel>
+										Sizes (t-shirt, pants, ring, shoe, hat, measurements, etc.)
+									</FormLabel>
 									<FormControl>
 										<Textarea {...field} value={field.value || ""} />
 									</FormControl>
@@ -221,7 +223,10 @@ function UserEditForm({ user }: { user: InferSelectModel<typeof users> }) {
 							name="interests"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Interests</FormLabel>
+									<FormLabel>
+										Interests (where do you shop? what do you like? pets? home
+										stuff? include some links)
+									</FormLabel>
 									<FormControl>
 										<Textarea {...field} value={field.value || ""} />
 									</FormControl>
