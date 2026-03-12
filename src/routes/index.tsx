@@ -1,48 +1,8 @@
 import { Show, SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
-import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
-import { db } from "#/db";
-import { users } from "#/db/schema";
-
-const authStateFn = createServerFn().handler(async () => {
-	const { isAuthenticated, userId } = await auth();
-
-	if (!isAuthenticated) {
-		throw redirect({
-			to: "/sign-in",
-		});
-	}
-
-	const user = await clerkClient().users.getUser(userId);
-
-	// check if the user is already in the database
-	let [dbUser] = await db
-		.select()
-		.from(users)
-		.where(eq(users.clerkId, userId))
-		.limit(1);
-
-	// if we don't have a db user, create a new one
-	if (!dbUser) {
-		const [newUser] = await db
-			.insert(users)
-			.values({
-				clerkId: userId,
-				name: user.firstName || "unknown",
-			})
-			.returning();
-		dbUser = newUser;
-	}
-
-	// fetch all users
-	const allUsers = await db.select().from(users);
-
-	return { userId, user: dbUser, allUsers };
-});
+import { authStateFn } from "#/server/home-fns";
 
 export const Route = createFileRoute("/")({
 	component: Home,

@@ -1,18 +1,11 @@
-import { auth } from "@clerk/tanstack-react-start/server";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	Link,
-	redirect,
-	useRouter,
-} from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { eq, type InferSelectModel } from "drizzle-orm";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import type { InferSelectModel } from "drizzle-orm";
 import { ArrowLeftIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import {
@@ -32,56 +25,13 @@ import {
 } from "#/components/ui/form";
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
-import { db } from "#/db";
-import { users } from "#/db/schema";
-
-const authGuardFn = createServerFn().handler(async () => {
-	const { isAuthenticated, userId } = await auth();
-	if (!isAuthenticated || !userId) {
-		throw redirect({ to: "/sign-in" });
-	}
-	return { currentUserId: userId };
-});
-
-const updateUserSchema = z.object({
-	id: z.number(),
-	name: z.string().min(1, "Name is required"),
-	address: z.string().optional().nullable(),
-	birthday: z.string().optional().nullable(),
-	anniversary: z.string().optional().nullable(),
-	sizes: z.string().optional().nullable(),
-	interests: z.string().optional().nullable(),
-});
-
-const updateUserFn = createServerFn({ method: "POST" })
-	.inputValidator(updateUserSchema)
-	.handler(async ({ data }) => {
-		const { isAuthenticated, userId: clerkId } = await auth();
-		if (!isAuthenticated) throw new Error("Unauthorized");
-
-		const [existingUser] = await db
-			.select()
-			.from(users)
-			.where(eq(users.id, data.id))
-			.limit(1);
-		if (!existingUser || existingUser.clerkId !== clerkId) {
-			throw new Error("Unauthorized");
-		}
-
-		await db
-			.update(users)
-			.set({
-				name: data.name,
-				address: data.address || null,
-				birthday: data.birthday || null,
-				anniversary: data.anniversary || null,
-				sizes: data.sizes || null,
-				interests: data.interests || null,
-			})
-			.where(eq(users.id, data.id));
-
-		return { success: true };
-	});
+import type { users } from "#/db/schema";
+import {
+	authGuardFn,
+	loadUserProfileFn,
+	updateUserFn,
+	updateUserSchema,
+} from "#/server/user-fns";
 
 export const Route = createFileRoute("/user/$userId")({
 	component: UserProfile,
@@ -90,17 +40,7 @@ export const Route = createFileRoute("/user/$userId")({
 		const userId = Number(params.userId);
 		const { currentUserId } = context;
 
-		const [user] = await db
-			.select()
-			.from(users)
-			.where(eq(users.id, userId))
-			.limit(1);
-
-		if (!user) {
-			throw new Error("User not found");
-		}
-
-		return { user, isCurrentUser: user.clerkId === currentUserId };
+		return loadUserProfileFn({ data: { userId, currentUserId } });
 	},
 });
 
