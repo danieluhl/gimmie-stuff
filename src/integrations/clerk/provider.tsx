@@ -1,4 +1,4 @@
-import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkProvider } from "@clerk/tanstack-react-start";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!PUBLISHABLE_KEY) {
@@ -11,7 +11,12 @@ export default function AppClerkProvider({
 	children: React.ReactNode;
 }) {
 	return (
-		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+		<ClerkProvider
+			publishableKey={PUBLISHABLE_KEY}
+			signInUrl="/sign-in"
+			signInFallbackRedirectUrl="/"
+			afterSignOutUrl="/sign-in"
+		>
 			{children}
 		</ClerkProvider>
 	);

@@ -1,87 +1,109 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Show, SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
+import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { eq } from "drizzle-orm";
+import { Button } from "#/components/ui/button";
+import { Card, CardContent } from "#/components/ui/card";
+import { db } from "#/db";
+import { users } from "#/db/schema";
 
-export const Route = createFileRoute("/")({ component: App });
+const authStateFn = createServerFn().handler(async () => {
+	const { isAuthenticated, userId } = await auth();
 
-function App() {
+	if (!isAuthenticated) {
+		throw redirect({
+			to: "/sign-in",
+		});
+	}
+
+	const user = await clerkClient().users.getUser(userId);
+
+	return { userId, firstName: user.firstName };
+});
+
+export const Route = createFileRoute("/")({
+	component: Home,
+	beforeLoad: () => authStateFn(),
+	loader: async ({ context }) => {
+		const { userId, firstName } = context;
+
+		// check if the user is already in the database
+		let [dbUser] = await db
+			.select()
+			.from(users)
+			.where(eq(users.clerkId, userId))
+			.limit(1);
+
+		// if we don't have a db user, create a new one
+		if (!dbUser) {
+			const [newUser] = await db
+				.insert(users)
+				.values({
+					clerkId: userId,
+					name: firstName || "unknown",
+				})
+				.returning();
+			dbUser = newUser;
+		}
+
+		// fetch all users
+		const allUsers = await db.select().from(users);
+
+		return { userId: userId, user: dbUser, allUsers };
+	},
+});
+
+function Home() {
+	const { user, allUsers } = Route.useLoaderData();
+
 	return (
-		<main className="page-wrap px-4 pb-8 pt-14">
-			<section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-				<div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-				<div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-				<p className="island-kicker mb-3">TanStack Start Base Template</p>
-				<h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-					Start simple, ship quickly.
-				</h1>
-				<p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-					This base starter intentionally keeps things light: two routes, clean
-					structure, and the essentials you need to build from scratch.
-				</p>
-				<div className="flex flex-wrap gap-3">
-					<a
-						href="/about"
-						className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
-					>
-						About This Starter
-					</a>
-					<a
-						href="https://tanstack.com/router"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
-					>
-						Router Guide
-					</a>
+		<div>
+			<Show when="signed-in">
+				<div className="mb-8">
+					<h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
+					<p className="mt-1 text-muted-foreground">
+						Manage your gift lists and connections
+					</p>
 				</div>
-			</section>
 
-			<section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{[
-					[
-						"Type-Safe Routing",
-						"Routes and links stay in sync across every page.",
-					],
-					[
-						"Server Functions",
-						"Call server code from your UI without creating API boilerplate.",
-					],
-					[
-						"Streaming by Default",
-						"Ship progressively rendered responses for faster experiences.",
-					],
-					[
-						"Tailwind Native",
-						"Design quickly with utility-first styling and reusable tokens.",
-					],
-				].map(([title, desc], index) => (
-					<article
-						key={title}
-						className="island-shell feature-card rise-in rounded-2xl p-5"
-						style={{ animationDelay: `${index * 90 + 80}ms` }}
-					>
-						<h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-							{title}
-						</h2>
-						<p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-					</article>
-				))}
-			</section>
+				<section>
+					<h2 className="mb-4 text-lg font-semibold">All Users</h2>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+						{allUsers.map((u) => (
+							<Link
+								key={u.id}
+								to="/user/$userId"
+								params={{ userId: String(u.id) }}
+								className="no-underline"
+							>
+								<Card className="transition-colors hover:bg-accent">
+									<CardContent className="flex items-center justify-center py-6">
+										<span className="font-medium">{u.name}</span>
+									</CardContent>
+								</Card>
+							</Link>
+						))}
+					</div>
+				</section>
+			</Show>
 
-			<section className="island-shell mt-8 rounded-2xl p-6">
-				<p className="island-kicker mb-2">Quick Start</p>
-				<ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-					<li>
-						Edit <code>src/routes/index.tsx</code> to customize the home page.
-					</li>
-					<li>
-						Update <code>src/components/Header.tsx</code> and{" "}
-						<code>src/components/Footer.tsx</code> for brand links.
-					</li>
-					<li>
-						Add routes in <code>src/routes</code> and tweak visual tokens in{" "}
-						<code>src/styles.css</code>.
-					</li>
-				</ul>
-			</section>
-		</main>
+			<Show when="signed-out">
+				<div className="flex flex-col items-center justify-center py-16 text-center">
+					<h1 className="text-3xl font-bold">Welcome to Gimmie Stuff</h1>
+					<p className="mt-2 max-w-md text-muted-foreground">
+						Create and share gift lists with friends and family
+					</p>
+					<div className="mt-8 flex gap-3">
+						<SignInButton mode="modal">
+							<Button>Sign In</Button>
+						</SignInButton>
+						<SignUpButton mode="modal">
+							<Button variant="outline">Sign Up</Button>
+						</SignUpButton>
+					</div>
+				</div>
+			</Show>
+		</div>
 	);
 }
