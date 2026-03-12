@@ -1,11 +1,6 @@
 import { Show, SignInButton, SignUpButton } from "@clerk/tanstack-react-start";
 import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
-import {
-	createFileRoute,
-	Link,
-	redirect,
-	useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { Button } from "#/components/ui/button";

@@ -3,11 +3,11 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
-	ErrorComponent,
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import ClerkProvider from "../integrations/clerk/provider";
@@ -60,7 +60,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	}),
 	shellComponent: RootDocument,
 	notFoundComponent: NotFound,
-	errorComponent: ErrorComponent,
+	errorComponent: ErrorBoundary,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
