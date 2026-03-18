@@ -1,7 +1,7 @@
-import { SignIn } from "@clerk/clerk-react";
+import { SignIn } from "@clerk/tanstack-react-start";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/sign-in")({
+export const Route = createFileRoute("/sign-in/$")({
 	component: SignInPage,
 });
 
@@ -18,7 +18,7 @@ function SignInPage() {
 					Sign in to continue.
 				</p>
 				<div className="mx-auto max-w-sm">
-					<SignIn routing="path" path="/sign-in" />
+					<SignIn />
 				</div>
 			</section>
 		</main>
