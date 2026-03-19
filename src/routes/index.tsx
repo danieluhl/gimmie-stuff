@@ -23,9 +23,7 @@ function Home() {
 			<Show when="signed-in">
 				<div className="mb-8">
 					<h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
-					<p className="mt-1 text-muted-foreground">
-						Manage your gift lists and connections
-					</p>
+					<p className="mt-1 text-muted-foreground">Manage your gift lists</p>
 				</div>
 
 				<section className="flex flex-col gap-4">
