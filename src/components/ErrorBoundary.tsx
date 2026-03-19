@@ -1,5 +1,17 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
 
+type ErrorLike = {
+	message?: string;
+	stack?: string;
+	status?: number;
+	statusText?: string;
+	statusCode?: number;
+	statusMessage?: string;
+	data?: {
+		message?: string;
+	};
+};
+
 export function ErrorBoundary({ error }: ErrorComponentProps) {
 	// Determine if we're in production (no stack traces)
 	const isProduction = import.meta.env.PROD;
@@ -17,23 +29,49 @@ export function ErrorBoundary({ error }: ErrorComponentProps) {
 		errorMessage = error;
 	} else if (error && typeof error === "object") {
 		// Handle HTTP errors or other error objects
-		const errorObj = error as Record<string, unknown>;
-		if ("message" in errorObj && typeof errorObj.message === "string") {
+		const errorObj = error as ErrorLike;
+		if (typeof errorObj.message === "string") {
 			errorMessage = errorObj.message;
 		}
-		if (
-			"stack" in errorObj &&
-			typeof errorObj.stack === "string" &&
-			!isProduction
-		) {
+		if (typeof errorObj.stack === "string" && !isProduction) {
 			errorStack = errorObj.stack;
 		}
-		if ("status" in errorObj && typeof errorObj.status === "number") {
+		if (typeof errorObj.status === "number") {
 			errorStatus = errorObj.status;
 		}
-		if ("statusText" in errorObj && typeof errorObj.statusText === "string") {
+		if (typeof errorObj.statusText === "string") {
 			errorStatusText = errorObj.statusText;
 		}
+		if (typeof errorObj.statusCode === "number") {
+			errorStatus = errorObj.statusCode;
+		}
+		if (typeof errorObj.statusMessage === "string") {
+			errorStatusText = errorObj.statusMessage;
+		}
+		if (typeof errorObj.data?.message === "string") {
+			errorMessage = errorObj.data.message;
+		}
+	}
+
+	if (errorStatus === 401 && errorMessage === "An unexpected error occurred") {
+		errorMessage = "You need to sign in to continue.";
+	}
+
+	if (errorStatus === 403 && errorMessage === "An unexpected error occurred") {
+		errorMessage = "You do not have permission to perform this action.";
+	}
+
+	if (errorStatus === 404 && errorMessage === "An unexpected error occurred") {
+		errorMessage = "The requested data could not be found.";
+	}
+
+	if (
+		errorStatus === 500 &&
+		(errorMessage === "An unexpected error occurred" ||
+			errorMessage === "Internal Server Error")
+	) {
+		errorMessage =
+			"The server hit a problem while loading data. Please try again.";
 	}
 
 	// Log error for debugging

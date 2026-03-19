@@ -38,6 +38,11 @@ export const Route = createFileRoute("/user/$userId")({
 	beforeLoad: () => authGuardFn(),
 	loader: async ({ params, context }) => {
 		const userId = Number(params.userId);
+
+		if (!Number.isInteger(userId) || userId < 1) {
+			throw new Error("Invalid user profile id.");
+		}
+
 		const { currentUserId } = context;
 
 		return loadUserProfileFn({ data: { userId, currentUserId } });
@@ -68,6 +73,11 @@ function UserEditForm({ user }: { user: InferSelectModel<typeof users> }) {
 			router.invalidate();
 		},
 	});
+
+	const mutationErrorMessage =
+		mutation.error instanceof Error
+			? mutation.error.message
+			: "We could not save your profile changes. Please try again.";
 
 	const handleSubmit = (data: z.infer<typeof updateUserSchema>) => {
 		mutation.mutate({ data });
@@ -177,6 +187,9 @@ function UserEditForm({ user }: { user: InferSelectModel<typeof users> }) {
 						<div className="flex justify-end pt-4">
 							<Button type="submit">Save changes</Button>
 						</div>
+						{mutation.isError && (
+							<p className="text-sm text-red-600">{mutationErrorMessage}</p>
+						)}
 					</form>
 				</Form>
 			</DialogContent>
