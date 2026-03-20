@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "my-neon-worker",
+  "name": "gimmie-stuff",
   "main": "src/index.ts",
   "compatibility_flags": ["nodejs_compat"],
   "compatibility_date": "2025-09-27",
